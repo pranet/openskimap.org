@@ -390,6 +390,48 @@ export class Map {
           terrain: this.terrainEnabled ? newStyle.terrain : undefined,
         };
 
+        // Inject dashed overlay for tunnel runs after the last runs layer
+        const lastRunsLayerIndex = baseStyle.layers.reduce(
+          (lastIdx, layer, idx) =>
+            (layer as any)["source-layer"] === "runs" ? idx : lastIdx,
+          -1,
+        );
+        if (lastRunsLayerIndex >= 0) {
+          baseStyle.layers.splice(lastRunsLayerIndex + 1, 0, {
+            id: "run-tunnel-overlay",
+            type: "line" as const,
+            source: "openskimap",
+            "source-layer": "runs",
+            filter: ["==", ["get", "tunnel"], true] as any,
+            paint: {
+              "line-dasharray": [4, 4],
+              "line-color": "rgba(255, 255, 255, 0.7)",
+              "line-width": 2,
+            },
+          });
+        }
+
+        // Inject dashed overlay for tunnel lifts after the last lifts layer
+        const lastLiftsLayerIndex = baseStyle.layers.reduce(
+          (lastIdx, layer, idx) =>
+            (layer as any)["source-layer"] === "lifts" ? idx : lastIdx,
+          -1,
+        );
+        if (lastLiftsLayerIndex >= 0) {
+          baseStyle.layers.splice(lastLiftsLayerIndex + 1, 0, {
+            id: "lift-tunnel-overlay",
+            type: "line" as const,
+            source: "openskimap",
+            "source-layer": "lifts",
+            filter: ["==", ["get", "tunnel"], true] as any,
+            paint: {
+              "line-dasharray": [4, 4],
+              "line-color": "rgba(255, 255, 255, 0.7)",
+              "line-width": 2,
+            },
+          });
+        }
+
         // Modify terrain source if it exists to use the same demSource to avoid double loading
         if (
           baseStyle.sources.terrain &&
